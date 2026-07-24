@@ -1,0 +1,138 @@
+[
+  {
+    "Id": "PS-INVOKE",
+    "Name": "PowerShell Invocation",
+    "Pattern": "\\b(powershell(\\.exe)?|pwsh)\\b",
+    "Weight": 15,
+    "Category": "PowerShellExecution",
+    "Description": "Invokes PowerShell or PowerShell Core."
+  },
+  {
+    "Id": "PS-ENCODED",
+    "Name": "PowerShell Encoded Command",
+    "Pattern": "-enc(odedcommand)?\\b",
+    "Weight": 35,
+    "Category": "PowerShellObfuscation",
+    "Description": "Uses -enc/-EncodedCommand to run a base64-encoded script, hiding its real content from casual inspection."
+  },
+  {
+    "Id": "HIDDEN-WINDOW",
+    "Name": "Hidden Window Flag",
+    "Pattern": "-w(indowstyle)?\\s+hidden\\b|-noninteractive\\b",
+    "Weight": 30,
+    "Category": "Obfuscation",
+    "Description": "Runs with a hidden window so the victim never sees a console appear."
+  },
+  {
+    "Id": "CMD-INVOKE",
+    "Name": "CMD Invocation",
+    "Pattern": "\\bcmd(\\.exe)?\\b",
+    "Weight": 10,
+    "Category": "CmdExecution",
+    "Description": "Invokes the Windows command interpreter. Weak signal alone - extremely common in legitimate use."
+  },
+  {
+    "Id": "CMD-C-FLAG",
+    "Name": "CMD /c Chaining",
+    "Pattern": "\\bcmd(\\.exe)?\\s+/c\\b",
+    "Weight": 15,
+    "Category": "CmdExecution",
+    "Description": "Uses cmd /c to chain a command, common in ClickFix payloads that wrap the real attack in an extra shell layer."
+  },
+  {
+    "Id": "DL-CURL",
+    "Name": "curl Download",
+    "Pattern": "\\bcurl(\\.exe)?\\b",
+    "Weight": 25,
+    "Category": "RemoteDownload",
+    "Description": "Uses curl to fetch remote content."
+  },
+  {
+    "Id": "DL-WGET",
+    "Name": "wget Download",
+    "Pattern": "\\bwget\\b",
+    "Weight": 25,
+    "Category": "RemoteDownload",
+    "Description": "Uses wget to fetch remote content."
+  },
+  {
+    "Id": "DL-IWR",
+    "Name": "Invoke-WebRequest / iwr",
+    "Pattern": "\\b(iwr|invoke-webrequest)\\b",
+    "Weight": 25,
+    "Category": "RemoteDownload",
+    "Description": "Uses PowerShell's Invoke-WebRequest (iwr alias) to fetch remote content."
+  },
+  {
+    "Id": "DL-PIPE-IEX",
+    "Name": "Piped to Invoke-Expression",
+    "Pattern": "\\|\\s*(iex|invoke-expression)\\b",
+    "Weight": 35,
+    "Category": "RemoteDownload",
+    "Description": "Pipes downloaded content directly into Invoke-Expression (iex), executing it without any inspection - the classic 'download cradle' pattern."
+  },
+  {
+    "Id": "DL-BITSADMIN",
+    "Name": "bitsadmin Transfer",
+    "Pattern": "\\bbitsadmin(\\.exe)?\\b.*/transfer",
+    "Weight": 55,
+    "Category": "RemoteDownload",
+    "Description": "Uses bitsadmin /transfer, a LOLBin download technique with little legitimate interactive use."
+  },
+  {
+    "Id": "DL-CERTUTIL",
+    "Name": "certutil Download/Decode",
+    "Pattern": "\\bcertutil(\\.exe)?\\b.*(-urlcache|-decode)",
+    "Weight": 55,
+    "Category": "RemoteDownload",
+    "Description": "Uses certutil -urlcache or -decode, a well-known LOLBin technique to download or decode a payload."
+  },
+  {
+    "Id": "SCRIPT-MSHTA",
+    "Name": "mshta Execution",
+    "Pattern": "\\bmshta(\\.exe)?\\b",
+    "Weight": 55,
+    "Category": "ScriptExecution",
+    "Description": "Invokes mshta.exe, a classic HTA/remote-script execution LOLBin used heavily in ClickFix campaigns."
+  },
+  {
+    "Id": "SCRIPT-REGSVR32",
+    "Name": "regsvr32 Squiblydoo",
+    "Pattern": "\\bregsvr32(\\.exe)?\\b.*(/i:https?:|scrobj\\.dll)",
+    "Weight": 55,
+    "Category": "ScriptExecution",
+    "Description": "Matches the 'Squiblydoo' technique: regsvr32 registering a remote scriptlet via scrobj.dll."
+  },
+  {
+    "Id": "SCRIPT-WSCRIPT",
+    "Name": "wscript Execution",
+    "Pattern": "\\bwscript(\\.exe)?\\b",
+    "Weight": 25,
+    "Category": "ScriptExecution",
+    "Description": "Invokes wscript.exe, commonly abused to launch obfuscated JScript/VBScript payloads."
+  },
+  {
+    "Id": "SCRIPT-CSCRIPT",
+    "Name": "cscript Execution",
+    "Pattern": "\\bcscript(\\.exe)?\\b",
+    "Weight": 25,
+    "Category": "ScriptExecution",
+    "Description": "Invokes cscript.exe, commonly abused to launch obfuscated JScript/VBScript payloads."
+  },
+  {
+    "Id": "OBF-BASE64",
+    "Name": "Long Base64-Like Blob",
+    "Pattern": "[A-Za-z0-9+/]{40,}={0,2}",
+    "Weight": 15,
+    "Category": "Obfuscation",
+    "Description": "Contains a long base64-alphabet run, a hallmark of an encoded/obfuscated payload. Low weight alone since this is generic; the engine's entropy bonus typically sharpens this further."
+  },
+  {
+    "Id": "OBF-SYMBOLS",
+    "Name": "Excessive Symbol Chaining",
+    "Pattern": "[;&|%^$]{4,}",
+    "Weight": 15,
+    "Category": "Obfuscation",
+    "Description": "Contains an unusually dense run of shell metacharacters, typical of obfuscated one-liners."
+  }
+]

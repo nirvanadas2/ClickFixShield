@@ -1,0 +1,37 @@
+
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.8.34330.188
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClickFixShield.Core", "src\ClickFixShield.Core\ClickFixShield.Core.csproj", "{945A306F-4525-4E1B-B5FD-E5615C017077}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClickFixShield.App", "src\ClickFixShield.App\ClickFixShield.App.csproj", "{DD590507-CEBF-49C4-83B5-2293D9BD420A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClickFixShield.Tests", "tests\ClickFixShield.Tests\ClickFixShield.Tests.csproj", "{9F373344-E335-41CB-815E-5C2F6BAB85F0}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{945A306F-4525-4E1B-B5FD-E5615C017077}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{945A306F-4525-4E1B-B5FD-E5615C017077}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{945A306F-4525-4E1B-B5FD-E5615C017077}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{945A306F-4525-4E1B-B5FD-E5615C017077}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DD590507-CEBF-49C4-83B5-2293D9BD420A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DD590507-CEBF-49C4-83B5-2293D9BD420A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DD590507-CEBF-49C4-83B5-2293D9BD420A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DD590507-CEBF-49C4-83B5-2293D9BD420A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9F373344-E335-41CB-815E-5C2F6BAB85F0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9F373344-E335-41CB-815E-5C2F6BAB85F0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9F373344-E335-41CB-815E-5C2F6BAB85F0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9F373344-E335-41CB-815E-5C2F6BAB85F0}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {A6BDFA87-432D-4A89-81AF-8AC2081A303D}
+	EndGlobalSection
+EndGlobal

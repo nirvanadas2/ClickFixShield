@@ -1,1 +1,7 @@
 .cohort/
+
+bin/
+obj/
+.vs/
+*.db
+*.db-journal
