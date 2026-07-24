@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "cohort": {
+      "command": "npx",
+      "args": [
+        "cohort-mcp"
+      ],
+      "env": {
+        "AGENTIC_CONFIG_DIR": "C:\\Users\\Nirvana Das\\AppData\\Roaming\\npm\\node_modules\\@bhavya-dhoot\\cohort\\vendor\\config"
+      }
+    }
+  }
+}
