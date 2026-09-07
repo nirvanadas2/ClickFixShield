@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Management;
 using ClickFixShield.Core.Contracts;
 using ClickFixShield.Core.Models;
@@ -51,6 +52,7 @@ public sealed class ProcessInterceptor : IDisposable
             watcher.Start();
             _watcher = watcher;
             IsActive = true;
+            LogDemo("Process interception ACTIVE - subscribed to Win32_ProcessStartTrace (running elevated).");
         }
         catch (Exception ex) when (ex is ManagementException or UnauthorizedAccessException)
         {
@@ -58,6 +60,7 @@ public sealed class ProcessInterceptor : IDisposable
             // so degrade gracefully rather than throwing out of Start().
             IsActive = false;
             _watcher = null;
+            LogDemo($"Process interception LIMITED - could not subscribe to Win32_ProcessStartTrace ({ex.GetType().Name}: {ex.Message}). Run as Administrator for full protection.");
         }
     }
 
@@ -98,12 +101,27 @@ public sealed class ProcessInterceptor : IDisposable
 
             if (decision != InterceptionDecision.Kill)
             {
-                // Don't spam the event store with every benign process launch on the
-                // system - only persist events actually evaluated as suspicious/killed.
+                // Don't spam the event store (or the console) with every benign process
+                // launch on the system - only surface events actually evaluated as
+                // suspicious/killed, so a live demo's log stays readable.
                 return;
             }
 
+            LogDemo($"Process-start event received: {processName} (PID {processId}) scored {detection.Score} ({detection.Level}) - command line: {commandLine}");
+
+            var correlated = detection.Explanation?.Contains("Correlates with a recently observed clipboard write.", StringComparison.Ordinal) == true;
+            if (correlated)
+            {
+                LogDemo("  -> Matched a recently observed malicious clipboard write. Escalating to kill.");
+            }
+
+            LogDemo($"  -> Attempting to kill PID {processId} ({processName})...");
+
             var actionTaken = TryKill(processId) ? ThreatAction.Blocked : ThreatAction.BlockAttemptFailed;
+
+            LogDemo(actionTaken == ThreatAction.Blocked
+                ? $"  -> Kill succeeded: {processName} (PID {processId}) terminated."
+                : $"  -> Kill FAILED for PID {processId} (it may have already exited).");
 
             var evt = new SecurityEvent(
                 Guid.NewGuid(),
@@ -144,6 +162,19 @@ public sealed class ProcessInterceptor : IDisposable
         }
 
         return null;
+    }
+
+    /// <summary>
+    /// Writes to both <see cref="Trace"/> (visible in DebugView/an attached debugger) and
+    /// the console (visible when the app is launched via <c>dotnet run</c> from a
+    /// terminal, as the README's live-demo instructions do) - so a demo watching the
+    /// terminal can see process interception firing in real time.
+    /// </summary>
+    private static void LogDemo(string message)
+    {
+        var line = $"[ClickFixShield] {message}";
+        Trace.WriteLine(line);
+        Console.WriteLine(line);
     }
 
     private static bool TryKill(int processId)
