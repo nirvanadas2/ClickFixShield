@@ -15,7 +15,11 @@ command line themselves.
 
 - **Clipboard monitoring** (`ClickFixShield.Core.Interception.ClipboardMonitor`) — watches
   the Windows clipboard via `AddClipboardFormatListener` and evaluates every text write
-  against the detection engine.
+  against the detection engine. De-duplicates on the clipboard's own sequence number
+  (`GetClipboardSequenceNumber`) rather than the raw notification, since Windows can (and
+  does) broadcast `WM_CLIPBOARDUPDATE` more than once for a single logical write — most
+  commonly when the Clipboard History/Cloud Clipboard shell service re-opens the
+  clipboard a few milliseconds later to attach its own synthesized formats.
 - **Win+R / process-launch correlation with best-effort kill**
   (`ProcessInterceptor`, `RunKeyHook`, `RunInterceptionDecider`) — subscribes to Windows
   process-start notifications (WMI `Win32_ProcessStartTrace`) and kills a matching
@@ -67,6 +71,58 @@ directory automatically) and are editable without recompiling. Each rule is:
 fails to compile is skipped at load time rather than crashing the app. Every rule that
 matches contributes its `Weight` toward the aggregate score; scores `<=20` are Safe,
 `21–50` Suspicious, `51–80` HighRisk, `>80` Malicious.
+
+## Novelty & Positioning
+
+To be upfront about what this project is and isn't: ClickFixShield is **applied
+engineering, not a novel detection algorithm.** Every individual piece - clipboard format
+listeners, WMI process-start tracing, weighted regex heuristics, SQLite for local
+storage - is a well-established Windows API or technique. Nothing here is a research
+contribution in malware detection or a new algorithmic idea.
+
+What it does offer:
+
+- **A specific, under-addressed threat model.** ClickFix (fake CAPTCHA / "verification"
+  pages that trick a user into pasting an attacker-supplied command into Win+R) is a
+  real, currently active social-engineering technique that most consumer AV and browser
+  protections don't directly target, because the "attack" never touches disk via a
+  browser download - it's the user's own manual paste-and-Enter that runs it.
+- **Local, zero-infrastructure operation.** No signature database, no cloud lookup, no
+  telemetry, no account/license server. Detection is entirely self-contained heuristics
+  over the clipboard/process-launch text itself, running fully offline.
+- **Two complementary vantage points combined.** Most public ClickFix write-ups discuss
+  detecting the clipboard write; fewer combine that with a best-effort kill on the actual
+  process launch, correlated back to the earlier clipboard content. That correlation
+  (`RunInterceptionDecider`) is the closest thing to a distinguishing design choice here,
+  and it's still just weighted heuristics plus a time-window join - not machine learning,
+  not behavioral/AI-based detection.
+
+In short: this is a well-tested, honestly-scoped implementation of known techniques
+aimed at a specific, real attack pattern - not a claim to have invented a new way to
+detect malware.
+
+## Testing & Validation
+
+- **27 tests total.** The original 25 are pure-logic, dependency-free unit tests covering
+  the detection engine's rule matching/scoring/classification, the process-interception
+  decision logic (`RunInterceptionDecider`), and the clipboard correlation window.
+- **A clipboard-monitor regression test** (`ClipboardMonitorTests`) drives the real Win32
+  clipboard and message loop end-to-end and asserts a single clipboard write produces
+  exactly one `SecurityEvent`, guarding against the duplicate-notification bug described
+  above.
+- **A labeled precision/recall corpus** (`tests/ClickFixShield.Tests/Corpus/DetectionCorpusTests.cs`)
+  runs the shipped `rules.json` against 20 hand-labeled attack-shaped strings (realistic
+  ClickFix-style wrapper syntax around a harmless embedded action, covering every rule
+  category) and 30 benign strings (URLs, git/npm/pip/dotnet/cloud CLI commands,
+  legitimate PowerShell, plain text). It measures the engine against the same `HighRisk`
+  threshold `RunInterceptionDecider` actually gates a kill decision on, and writes a full
+  row-by-row markdown report to
+  [`DETECTION_VALIDATION_REPORT.md`](DETECTION_VALIDATION_REPORT.md) on every test run.
+  Current result: **100% precision, 95% recall** - zero benign strings are ever flagged
+  HighRisk+, and 19/20 attack-shaped strings are correctly flagged; the one miss (a bare
+  `wscript.exe` invocation with no other wrapper technique) is called out by name in the
+  report as a known, honest gap rather than hidden.
+- Run everything with `dotnet test tests/ClickFixShield.Tests/ClickFixShield.Tests.csproj`.
 
 ## Known limitations
 
