@@ -27,6 +27,15 @@ public sealed class ClipboardMonitor : IClipboardMonitor
     private nint _windowHandle;
     private uint _threadId;
 
+    // Windows can (and does) deliver more than one WM_CLIPBOARDUPDATE for what a user
+    // perceives as a single copy - most commonly because the Clipboard History / Cloud
+    // Clipboard shell service (cbdhsvc) re-opens the clipboard a few ms later to add its
+    // own synthesized formats, which broadcasts a second, content-identical notification.
+    // The clipboard sequence number only advances on an actual content change, so it is
+    // the correct signal to de-duplicate on - not the message arrival itself, and not a
+    // post-hoc text comparison at the log layer.
+    private uint? _lastProcessedSequence;
+
     // Keeps the callback delegate alive for the window's lifetime - otherwise the GC can
     // collect it while native code still holds a function pointer to it.
     private WndProcDelegate? _wndProc;
@@ -149,6 +158,14 @@ public sealed class ClipboardMonitor : IClipboardMonitor
 
     private void OnClipboardUpdated()
     {
+        var sequence = GetClipboardSequenceNumber();
+        if (_lastProcessedSequence.HasValue && sequence == _lastProcessedSequence.Value)
+        {
+            return;
+        }
+
+        _lastProcessedSequence = sequence;
+
         var text = TryReadClipboardText();
         if (string.IsNullOrEmpty(text))
         {
@@ -312,6 +329,9 @@ public sealed class ClipboardMonitor : IClipboardMonitor
 
     [DllImport("user32.dll")]
     private static extern bool IsClipboardFormatAvailable(uint format);
+
+    [DllImport("user32.dll")]
+    private static extern uint GetClipboardSequenceNumber();
 
     [DllImport("user32.dll")]
     private static extern nint GetClipboardData(uint uFormat);
